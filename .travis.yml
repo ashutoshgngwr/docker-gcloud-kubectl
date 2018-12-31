@@ -12,31 +12,28 @@ env:
     - IMAGE_TAG_COMMIT=$TRAVIS_REPO_SLUG:$TRAVIS_COMMIT
     - IMAGE_TAG_RELEASE=$TRAVIS_REPO_SLUG:$TRAVIS_TAG
     - DOCKER_USERNAME=ashutoshgngwr
-    - secure: LG2YkW9S5XYvKCfpmwVPoht94u1089wClTghPMhvcn+7VXuczD3BPHnh644OpGZ5WLWBcTVsk3XCUA0oh8b3CmKweb/xX8YJgX+7JqXg4k9w9GUmUx8hWr+aBwJVHxzl+gJK9yRfeIXnNbX//jYCfa0J+FQYOQjsVeqh6vK117mEamQp6ilMy3kPG1g0twI6WVd96j5fEthu8L4y9egbRoRmQ/jGv2JiTCVbhJ4igsS/M7AXFBxuy3EACBtVBpJkNGwzAm1fyKvVoWx7QmlPOYJvAS4IPSW/7ROehpTg0oePYlXMJBUK+SjpGpod43ftxeRvAhFvTepuD14Xeq4/0rQOM3aqM26kvMSVvGtCApY2kYcCvgCRLwBw7vhyFbvEJ9WxANQnVS+XEx9F7I6dDHI2b/7y3HoLhnjn3rDgF6tRN4W7tEldtGtX13Vy371y0jPIK89L2NzjC7s4W5L01+wmTRd3l1PHrLRDmW7YHhTSgYPhLziIceAh0Ku76IYf+OXRr6RjKDj77FOSgxbKnkr+mpAal5INEyxee5LRPmlpBPyfhkwCEYViQHkr7ui9ay7sTmDzMoWQjPLNYWaACASJDA+SH+6X5pRET0ohh1cyrFJcV1wzW6FpK2qTFYZBIGGPD1dRseU7z3Hd7hR8ng9uae/zgh8uCspoGqt6hNw=
+    - secure: jUoiSgQHdzjdG1NKX29hQFLMYgJmMn9x5lDi2VVtYbJhnojK8896Yn0DL2h/4/xqe+DfkJn8FfSnD8xeY0rFdEJHRByhNV+xC3GKdQl9oYsn/Gs5eKEzdWY3+Z4bsjrkg+lZN4DKOCV4zyHzEIsEIgFONMmcAtiMtQgiaHtFxJmv3+c4HjJTWP0waOHldSP94IL5nu38xdoI4V1Vq6aRoAOnlV6o+2v/AHmabaeOC5i+qxao0pt2kswRw2tMkPKA7tfyUEwIVzTREjf3b6TmTaTDlGBVbyTisCQNx8uNBsGC/2KFmuoePZJeNBfHyxYBbpCGPYmEPgcC8qd07lZ0UY1fmNW6/7vQfw5SXHdT275q/XDcRMSJV1TClCZfwjBMWCgw0ckZfQGy879nTkz5EtfJX9nZ/y/VTU8dQJKdKR+hgy64m66WQGq0566j/gXW4HrqSxaABIe9F9CmtzqqUHbPtc7oQDclrxA3rKpDl2Wxt+47ZrA++ydr4lMUdHmjrETrRF2jQbPnCXdFjOcPjygQCOTl+B7rcT81qCg/mcwGnioDuyCTizRM4I7QJmmkDLuGBDq7a4HwcOVA0kuqVHWqarydN3D/MPmOunUo3RgSANOGnrF1QeP5uhtllF8cOekVdFg7/YFnltt7A3X1nteEAD8pUe0bcr1aWzEtbvQ=
+
+before_script:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 jobs:
   include:
     - stage: build
       script:
-        - docker build -t $IMAGE_TAG_LATEST .
-        - docker tag $IMAGE_TAG_LATEST $IMAGE_TAG_COMMIT
-        - |
-          if [ ! -z $TRAVIS_TAG ]; then
-            docker tag $IMAGE_TAG_LATEST $IMAGE_TAG_RELEASE
-          fi
-
+        - docker build -t $IMAGE_TAG_COMMIT .
+        - docker push $IMAGE_TAG_COMMIT
     - stage: test
       script:
-        - docker run --rm $IMAGE_TAG_LATEST
+        - docker run --rm $IMAGE_TAG_COMMIT
 
     - stage: deploy
       if: branch = master
-      before_script:
-        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       script:
+        - docker tag $IMAGE_TAG_COMMIT $IMAGE_TAG_LATEST
         - docker push $IMAGE_TAG_LATEST
-        - docker push $IMAGE_TAG_COMMIT
         - |
           if [ ! -z $TRAVIS_TAG ]; then
+            docker tag $IMAGE_TAG_LATEST $IMAGE_TAG_RELEASE
             docker push $IMAGE_TAG_RELEASE
           fi
