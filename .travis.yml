@@ -1,0 +1,42 @@
+stages:
+  - build
+  - test
+  - deploy
+
+services:
+  - docker
+
+env:
+  global:
+    - IMAGE_TAG_LATEST=$TRAVIS_REPO_SLUG:latest
+    - IMAGE_TAG_COMMIT=$TRAVIS_REPO_SLUG:$TRAVIS_COMMIT
+    - IMAGE_TAG_RELEASE=$TRAVIS_REPO_SLUG:$TRAVIS_TAG
+    - DOCKER_USERNAME=ashutoshgngwr
+    - secure: LG2YkW9S5XYvKCfpmwVPoht94u1089wClTghPMhvcn+7VXuczD3BPHnh644OpGZ5WLWBcTVsk3XCUA0oh8b3CmKweb/xX8YJgX+7JqXg4k9w9GUmUx8hWr+aBwJVHxzl+gJK9yRfeIXnNbX//jYCfa0J+FQYOQjsVeqh6vK117mEamQp6ilMy3kPG1g0twI6WVd96j5fEthu8L4y9egbRoRmQ/jGv2JiTCVbhJ4igsS/M7AXFBxuy3EACBtVBpJkNGwzAm1fyKvVoWx7QmlPOYJvAS4IPSW/7ROehpTg0oePYlXMJBUK+SjpGpod43ftxeRvAhFvTepuD14Xeq4/0rQOM3aqM26kvMSVvGtCApY2kYcCvgCRLwBw7vhyFbvEJ9WxANQnVS+XEx9F7I6dDHI2b/7y3HoLhnjn3rDgF6tRN4W7tEldtGtX13Vy371y0jPIK89L2NzjC7s4W5L01+wmTRd3l1PHrLRDmW7YHhTSgYPhLziIceAh0Ku76IYf+OXRr6RjKDj77FOSgxbKnkr+mpAal5INEyxee5LRPmlpBPyfhkwCEYViQHkr7ui9ay7sTmDzMoWQjPLNYWaACASJDA+SH+6X5pRET0ohh1cyrFJcV1wzW6FpK2qTFYZBIGGPD1dRseU7z3Hd7hR8ng9uae/zgh8uCspoGqt6hNw=
+
+jobs:
+  include:
+    - stage: build
+      script:
+        - docker build -t $IMAGE_TAG_LATEST .
+        - docker tag $IMAGE_TAG_LATEST $IMAGE_TAG_COMMIT
+        - |
+          if [ ! -z $TRAVIS_TAG ]; then
+            docker tag $IMAGE_TAG_LATEST $IMAGE_TAG_RELEASE
+          fi
+
+    - stage: test
+      script:
+        - docker run --rm $IMAGE_TAG_LATEST
+
+    - stage: deploy
+      if: branch = master
+      before_script:
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      script:
+        - docker push $IMAGE_TAG_LATEST
+        - docker push $IMAGE_TAG_COMMIT
+        - |
+          if [ ! -z $TRAVIS_TAG ]; then
+            docker push $IMAGE_TAG_RELEASE
+          fi
