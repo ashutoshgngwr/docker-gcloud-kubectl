@@ -1,5 +1,6 @@
 # docker-gcloud-kubectl
 
+![travis-ci badge][4]  
 A docker image configuration for with Google Cloud SDK and Kubernetes CLI pre-installed.
 
 ## Use case
@@ -25,3 +26,4 @@ This image was built in an attempt to simplify _docker-in-docker_ based CI/CD pi
 [1]: https://cloud.google.com/container-registry/
 [2]: https://docker.com
 [3]: https://kubernetes.io
+[4]: https://travis-ci.org/ashutoshgngwr/docker-gcloud-kubectl.svg?branch=master
