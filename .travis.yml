@@ -30,6 +30,7 @@ jobs:
     - stage: deploy
       if: branch = master
       script:
+        - docker pull $IMAGE_TAG_COMMIT
         - docker tag $IMAGE_TAG_COMMIT $IMAGE_TAG_LATEST
         - docker push $IMAGE_TAG_LATEST
         - |
