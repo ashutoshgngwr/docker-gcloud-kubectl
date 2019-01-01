@@ -36,9 +36,8 @@ jobs:
         - docker push $IMAGE_TAG_LATEST
 
     - stage: deploy
+      if: tag IS present
       script:
         - docker pull $IMAGE_TAG_DEV
         - docker tag $IMAGE_TAG_DEV $IMAGE_TAG_RELEASE
         - docker push $IMAGE_TAG_RELEASE
-      on:
-        tags: true
