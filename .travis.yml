@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - staging
   - deploy
 
 services:
@@ -8,8 +9,8 @@ services:
 
 env:
   global:
+    - IMAGE_TAG_DEV=$TRAVIS_REPO_SLUG:dev
     - IMAGE_TAG_LATEST=$TRAVIS_REPO_SLUG:latest
-    - IMAGE_TAG_COMMIT=$TRAVIS_REPO_SLUG:$TRAVIS_COMMIT
     - IMAGE_TAG_RELEASE=$TRAVIS_REPO_SLUG:$TRAVIS_TAG
     - DOCKER_USERNAME=ashutoshgngwr
     - secure: jUoiSgQHdzjdG1NKX29hQFLMYgJmMn9x5lDi2VVtYbJhnojK8896Yn0DL2h/4/xqe+DfkJn8FfSnD8xeY0rFdEJHRByhNV+xC3GKdQl9oYsn/Gs5eKEzdWY3+Z4bsjrkg+lZN4DKOCV4zyHzEIsEIgFONMmcAtiMtQgiaHtFxJmv3+c4HjJTWP0waOHldSP94IL5nu38xdoI4V1Vq6aRoAOnlV6o+2v/AHmabaeOC5i+qxao0pt2kswRw2tMkPKA7tfyUEwIVzTREjf3b6TmTaTDlGBVbyTisCQNx8uNBsGC/2KFmuoePZJeNBfHyxYBbpCGPYmEPgcC8qd07lZ0UY1fmNW6/7vQfw5SXHdT275q/XDcRMSJV1TClCZfwjBMWCgw0ckZfQGy879nTkz5EtfJX9nZ/y/VTU8dQJKdKR+hgy64m66WQGq0566j/gXW4HrqSxaABIe9F9CmtzqqUHbPtc7oQDclrxA3rKpDl2Wxt+47ZrA++ydr4lMUdHmjrETrRF2jQbPnCXdFjOcPjygQCOTl+B7rcT81qCg/mcwGnioDuyCTizRM4I7QJmmkDLuGBDq7a4HwcOVA0kuqVHWqarydN3D/MPmOunUo3RgSANOGnrF1QeP5uhtllF8cOekVdFg7/YFnltt7A3X1nteEAD8pUe0bcr1aWzEtbvQ=
@@ -21,20 +22,23 @@ jobs:
   include:
     - stage: build
       script:
-        - docker build -t $IMAGE_TAG_COMMIT .
-        - docker push $IMAGE_TAG_COMMIT
+        - docker build -t $IMAGE_TAG_DEV .
+        - docker push $IMAGE_TAG_DEV
     - stage: test
       script:
-        - docker run --rm $IMAGE_TAG_COMMIT
+        - docker run --rm $IMAGE_TAG_DEV
 
-    - stage: deploy
+    - stage: staging
       if: branch = master
       script:
-        - docker pull $IMAGE_TAG_COMMIT
-        - docker tag $IMAGE_TAG_COMMIT $IMAGE_TAG_LATEST
+        - docker pull $IMAGE_TAG_DEV
+        - docker tag $IMAGE_TAG_DEV $IMAGE_TAG_LATEST
         - docker push $IMAGE_TAG_LATEST
-        - |
-          if [ ! -z $TRAVIS_TAG ]; then
-            docker tag $IMAGE_TAG_LATEST $IMAGE_TAG_RELEASE
-            docker push $IMAGE_TAG_RELEASE
-          fi
+
+    - stage: deploy
+      script:
+        - docker pull $IMAGE_TAG_DEV
+        - docker tag $IMAGE_TAG_DEV $IMAGE_TAG_RELEASE
+        - docker push $IMAGE_TAG_RELEASE
+      on:
+        tags: true
