@@ -3,6 +3,10 @@
 [![travis-ci badge][4]][5]  
 A docker image configuration with Google Cloud SDK and Kubernetes CLI pre-installed.
 
+### Warning
+
+This docker image is neither optimized for nor meant to be used in production. I did this in hopes of getting a better grasp of Docker containers. :)
+
 ## Use case
 
 This image was built in an attempt to simplify _docker-in-docker (`dind`)_ based CI/CD pipelines when using [Google Container Registry][1] for [Docker][2] image hosting and/or [Kubernetes][3] for container orchestration.
